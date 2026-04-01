@@ -2,72 +2,242 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Stocks Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- price chart -->
-  <style>
-    body { font-family: system-ui; margin: 0; padding: 10px; background: #f5f5f5; }
-    .container {
-      display: flex; gap: 10px; height: calc(100vh - 60px);
-    }
-    .left {
-      width: 260px; flex-shrink: 0; background: #fff; border-radius: 6px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-    }
-    .watchlist-item {
-      padding: 8px 10px; border-radius: 4px; cursor: pointer; margin: 2px 0;
-    }
-    .watchlist-item.selected { background: #e0f7fa; border: 1px solid #00acc1; }
-    .watchlist-item strong { display: block; font-size: 14px; }
-    .watchlist-item .signal { font-size: 12px; }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Signals Dashboard</title>
 
-    .right {
-      flex: 1; background: #fff; border-radius: 6px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #222;
+      height: 100vh;
+      display: flex;
       overflow: hidden;
     }
-    .stock-header {
-      margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee;
+    .sidebar {
+      width: 300px;
+      background: #fff;
+      border-right: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-    #chart-container { height: 300px; }
-    #news-list { list-style: none; margin: 0; padding: 0; font-size: 14px; }
-    #news-list li { padding: 6px 0; border-bottom: 1px solid #eee; }
-    #news-list li.breaking { background: #fff3e0; border-left: 3px solid #ff9800; }
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid #eee;
+    }
+    .sidebar-header h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    #stocks {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .watchlist-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .watchlist-item:hover {
+      background: #f8fbff;
+    }
+    .watchlist-item.selected {
+      background: #e8f0fe;
+      border-left: 4px solid #1976d2;
+      padding-left: 12px;
+    }
+    .stock-name {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .stock-meta {
+      font-size: 13px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .signal-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .signal-BUY { background: #d9f7e8; color: #0f8f4f; }
+    .signal-SELL { background: #fde1e1; color: #cc2b2b; }
+    .signal-HOLD { background: #eceff3; color: #667085; }
 
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .title-block h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .title-block .sub {
+      margin-top: 4px;
+      color: #666;
+      font-size: 14px;
+    }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .metric {
+      background: #fff;
+      border: 1px solid #e6e6e6;
+      border-radius: 10px;
+      padding: 10px 14px;
+      min-width: 120px;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 16px;
+      padding: 16px;
+      overflow: auto;
+    }
+    .panel {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .panel h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    .chart-box {
+      height: 320px;
+    }
+    #news-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    #news-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      line-height: 1.45;
+    }
+    #news-list li:last-child {
+      border-bottom: none;
+    }
+    .breaking {
+      color: #c62828;
+      font-weight: 700;
+    }
+    .status {
+      padding: 10px 16px;
+      background: #fff8e1;
+      color: #8a6d1d;
+      border-top: 1px solid #f0e0a0;
+      font-size: 13px;
+    }
     .popup {
-      position: fixed; top: 20px; right: 20px; z-index: 1000;
-      background: #4caf50; color: #fff; border-radius: 6px;
-      padding: 12px 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #111;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+      z-index: 9999;
+      max-width: 320px;
+      cursor: pointer;
+    }
+    @media (max-width: 900px) {
+      body { flex-direction: column; height: auto; overflow: auto; }
+      .sidebar { width: 100%; max-height: 240px; border-right: none; border-bottom: 1px solid #ddd; }
+      .content { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <h1>My Stocks Dashboard</h1>
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Tracked Stocks</h2>
+      <div style="font-size:13px;color:#666;">Loaded from published Google Sheet CSV</div>
+    </div>
+    <ul id="stocks"></ul>
+  </aside>
 
-  <div class="container">
-    <!-- Left: stocks list -->
-    <div class="left">
-      <h3>Watchlist</h3>
-      <ul id="stocks"></ul>
+  <main class="main">
+    <div class="topbar">
+      <div class="title-block">
+        <h1 id="selected-name">Select a stock</h1>
+        <div class="sub" id="selected-code">Waiting for watchlist...</div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Signal</div>
+          <div class="metric-value" id="signal">–</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Confidence</div>
+          <div class="metric-value" id="confidence">–</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Price</div>
+          <div class="metric-value" id="price">–</div>
+        </div>
+      </div>
     </div>
 
-    <!-- Right: selected stock -->
-    <div class="right">
-      <div class="stock-header">
-        <h2 id="selected-name">Select a stock</h2>
-        <div>Price: <span id="price">–</span></div>
-        <div>Signal: <span id="signal">–</span></div>
-        <div>Confidence: <span id="confidence">–</span></div>
-      </div>
+    <div class="content">
+      <section class="panel">
+        <h3>Price Chart</h3>
+        <div class="chart-box">
+          <canvas id="price-chart"></canvas>
+        </div>
+      </section>
 
-      <div id="chart-container">
-        <canvas id="price-chart"></canvas>
-      </div>
-
-      <div id="news">
+      <section class="panel">
         <h3>Latest News</h3>
         <ul id="news-list"></ul>
-      </div>
+      </section>
     </div>
-  </div>
 
-  <script src="app.js"></script>
+    <div class="status" id="status-bar">Initializing dashboard...</div>
+  </main>
+
+  <script src="./app.js" defer></script>
 </body>
 </html>

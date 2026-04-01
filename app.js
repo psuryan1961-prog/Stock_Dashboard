@@ -1,6 +1,6 @@
 // CONFIG
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDPJzNg13VRBu_oTE24ZfdH_G7TpyeZg1Dtk7Z8HDMPF4p92HcTdxnHipI9fm49zzL89zAq3bo-WyH/pub?output=csv";
-const NSE_API_BASE = "http://nse-api-khaki.vercel.app:5000/stock?symbol="; // free Indian‑market API [web:2]
+const NSE_API_BASE = "http://nse-api-khaki.vercel.app:5000/stock?symbol="; // free Indianâ€‘market API [web:2]
 
 // state
 let stocks = [];
@@ -44,8 +44,8 @@ function renderWatchlist() {
     const item = document.createElement("li");
     item.className = "watchlist-item";
     item.innerHTML = `
-      <strong>${stock["Stock Name"] || "–"}</strong>
-      <span class="signal">${stock["Final Signal"] || "–"}</span>
+      <strong>${stock["Stock Name"] || "â€“"}</strong>
+      <span class="signal">${stock["Final Signal"] || "â€“"}</span>
     `;
     item.dataset.nse = stock["NSE Code"] || "";
     item.dataset.name = stock["Stock Name"] || "";
@@ -60,8 +60,8 @@ async function loadStock(stock) {
   const nseCode = stock["NSE Code"] || "";
 
   document.getElementById("selected-name").textContent = name;
-  document.getElementById("signal").textContent = stock["Final Signal"] || "–";
-  document.getElementById("confidence").textContent = stock["Confidence"] || "–";
+  document.getElementById("signal").textContent = stock["Final Signal"] || "â€“";
+  document.getElementById("confidence").textContent = stock["Confidence"] || "â€“";
 
   // highlight in list
   document.querySelectorAll(".watchlist-item").forEach(el => {
@@ -72,17 +72,17 @@ async function loadStock(stock) {
   // price (async)
   if (nseCode) {
     const price = await getPrice(nseCode);
-    document.getElementById("price").textContent = price || "–";
+    document.getElementById("price").textContent = price || "â€“";
   }
 
   // dummy price data (you can later fetch from API)
   const dummyData = generateDummyPriceData(60); // 60 points
   updateChart(dummyData);
 
-  // dummy news (you’d replace with real news API)
+  // dummy news (youâ€™d replace with real news API)
   renderNews([
     {title: "Regular news item 1", breaking: false},
-    {title: "🚨 BREAKING: Govt announces new policy", breaking: true},
+    {title: "ðŸš¨ BREAKING: Govt announces new policy", breaking: true},
     {title: "Regular news item 2", breaking: false}
   ]);
 }
@@ -94,7 +94,7 @@ function generateDummyPriceData(n) {
   let price = 100;
   for (let i = 0; i < n; ++i) {
     price += (Math.random() - 0.5) * 5;
-    const t = new Date(now.getTime() - (n - i) * 1000 * 60); // 1‑min steps
+    const t = new Date(now.getTime() - (n - i) * 1000 * 60); // 1â€‘min steps
     series.push({t: t.getTime() / 1000, value: price});
   }
   return series;
@@ -161,7 +161,7 @@ function checkSignals() {
     const isNow = s["Final Signal"] === "BUY";
 
     if (isNow && !wasKnown) {
-      showPopup(`${s["Stock Name"]} — BUY signal triggered!`);
+      showPopup(`${s["Stock Name"]} â€” BUY signal triggered!`);
     }
 
     if (isNow) lastBuySignals.add(key);
@@ -183,7 +183,7 @@ async function init() {
   // load first stock if available
   if (stocks.length > 0) await loadStock(stocks[0]);
 
-  // auto‑refresh every 5 minutes
+  // autoâ€‘refresh every 5 minutes
   setInterval(async () => {
     const newStocks = await loadSheet();
     stocks = newStocks;
