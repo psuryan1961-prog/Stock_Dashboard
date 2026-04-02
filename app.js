@@ -44,8 +44,8 @@ function renderWatchlist() {
     const item = document.createElement("li");
     item.className = "watchlist-item";
     item.innerHTML = `
-      <strong>${stock["Stock Name"] || "â€“"}</strong>
-      <span class="signal">${stock["Final Signal"] || "â€“"}</span>
+      <strong>${stock["Stock Name"] || ""}</strong>
+      <span class="signal">${stock["Final Signal"] || ""}</span>
     `;
     item.dataset.nse = stock["NSE Code"] || "";
     item.dataset.name = stock["Stock Name"] || "";
@@ -60,8 +60,8 @@ async function loadStock(stock) {
   const nseCode = stock["NSE Code"] || "";
 
   document.getElementById("selected-name").textContent = name;
-  document.getElementById("signal").textContent = stock["Final Signal"] || "â€“";
-  document.getElementById("confidence").textContent = stock["Confidence"] || "â€“";
+  document.getElementById("signal").textContent = stock["Final Signal"] || "";
+  document.getElementById("confidence").textContent = stock["Confidence"] || "";
 
   // highlight in list
   document.querySelectorAll(".watchlist-item").forEach(el => {
@@ -72,7 +72,7 @@ async function loadStock(stock) {
   // price (async)
   if (nseCode) {
     const price = await getPrice(nseCode);
-    document.getElementById("price").textContent = price || "â€“";
+    document.getElementById("price").textContent = price || "";
   }
 
   // dummy price data (you can later fetch from API)
@@ -82,7 +82,7 @@ async function loadStock(stock) {
   // dummy news (youâ€™d replace with real news API)
   renderNews([
     {title: "Regular news item 1", breaking: false},
-    {title: "ðŸš¨ BREAKING: Govt announces new policy", breaking: true},
+    {title: "BREAKING: Govt announces new policy", breaking: true},
     {title: "Regular news item 2", breaking: false}
   ]);
 }
